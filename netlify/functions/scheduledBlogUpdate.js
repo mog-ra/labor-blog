@@ -132,6 +132,15 @@ URL: ${newsItem.link}
   const result = await model.generateContent(prompt);
   const text   = result.response.text();
 
+// ↓ ↓ ↓ ここに3行追加 ↓ ↓ ↓
+const safeText = text
+  .replace(/```json|```/g, '')    // コードブロック除去
+  .replace(/[\n\r\t]/g, ' ')      // 改行→スペース
+  .trim();                        // 前後空白除去
+const match = safeText.match(/\{[\s\S]*\}/);
+
+// 以下はそのまま（parsed = JSON.parse...）
+
   // JSONパース
   const match = text.match(/\{[\s\S]*\}/);
   if (!match) {
