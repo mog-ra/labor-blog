@@ -130,25 +130,31 @@ URL: ${newsItem.link}
 `.trim();
 
   const result = await model.generateContent(prompt);
-  const text   = result.response.text();
+let text = result.response.text();
 
-// ↓ ↓ ↓ ここに3行追加 ↓ ↓ ↓
-const safeText = text
-  .replace(/```json|```/g, '')    // コードブロック除去
-  .replace(/[\n\r\t]/g, ' ')      // 改行→スペース
-  .trim();                        // 前後空白除去
-const match = safeText.match(/\{[\s\S]*\}/);
+// 🔥 🔥 🔥 完全JSONクリーニング 🔥 🔥 🔥const parsed = JSON.parse(match
+text = text
+  .replace(/```(?:json)?|```/g, '')           // コードブロック全除去
+  .replace(/^\s*[\r\n]+/gm, '')               // 先頭改行除去
+  .replace(/[\n\r\t]+/g, ' ')                 // 改行→スペース
+  .replace(/\s{2,}/g, ' ')                    // 複数スペース→単一
+  .trim();
 
-// 以下はそのまま（parsed = JSON.parse...）
+console.log('[記事生成] クリーン後長さ:', text.length);
 
-  // JSONパース
-  const match = text.match(/\{[\s\S]*\}/);
-  if (!match) {
-    console.error('[記事生成] JSONが見つかりません:', text.substring(0, 200));
-    return null;
-  }
+const match = text.match(/\{[\s\S]*?\}/);
+if (!match) {
+  console.error('[記事生成] JSON抽出失敗:', text.substring(0, 300));
+  return null;
+}
 
-  const parsed = JSON.parse(match[0]);
+let parsed;
+try {
+  parsed = JSON.parse(match[0]);
+} catch (e) {
+  console.error('[記事生成] JSON.parse失敗:', e.message, match[0].substring(0, 200));
+  return null;
+}
   if (!parsed.title || !parsed.body) {
     console.error('[記事生成] 必須フィールド不足');
     return null;
