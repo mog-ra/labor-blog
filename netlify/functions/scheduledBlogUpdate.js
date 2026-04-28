@@ -100,7 +100,7 @@ async function fetchNews() {
 async function generateArticle(newsItem) {
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
   const model = genAI.getGenerativeModel({
-    model: 'gemini-2.5-flash-lite-preview-06-17',
+    model: 'gemini-2.5-flash-lite',
     generationConfig: { temperature: 0.4, maxOutputTokens: 2500 },
     systemInstruction:
       'あなたは社会保険労務士事務所のブログライターです。' +
